@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: uneaty-backend
+  namespace: uneaty
+  labels:
+    app: uneaty-backend
+spec:
+  selector:
+    app: uneaty-backend
+  ports:
+  - port: 80
+    targetPort: 4000
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: uneaty-frontend
+  namespace: uneaty
+  labels:
+    app: uneaty-frontend
+spec:
+  selector:
+    app: uneaty-frontend
+  ports:
+  - port: 80
+    targetPort: 80
+  type: ClusterIP

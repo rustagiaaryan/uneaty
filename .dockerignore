@@ -1,0 +1,45 @@
+# Node
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build directories
+/frontend/build/
+/frontend/dist/
+/backend/dist/
+/backend/build/
+
+# Coverage directories
+/coverage/
+/frontend/coverage/
+/backend/coverage/
+
+# Git
+.git
+.gitignore
+
+# Logs
+logs
+*.log
+
+# OS specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
