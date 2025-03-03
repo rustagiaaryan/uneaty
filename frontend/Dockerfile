@@ -1,5 +1,4 @@
-# Build stage
-FROM node:16-alpine as build
+FROM node:16-alpine
 
 WORKDIR /app
 
@@ -12,20 +11,12 @@ RUN npm install
 # Copy the rest of the application code
 COPY . .
 
-# Build the app
-RUN npm run build
+# Make sure React binds to all network interfaces
+ENV HOST=0.0.0.0
+ENV PORT=3000
 
-# Production stage
-FROM nginx:alpine
+# Expose port 3000
+EXPOSE 3000
 
-# Copy the build output to replace the default nginx contents
-COPY --from=build /app/build /usr/share/nginx/html
-
-# Copy custom nginx config if needed
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Expose port 80
-EXPOSE 80
-
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start the application
+CMD ["npm", "start"]

@@ -1,18 +1,11 @@
 const express = require('express');
 const router = express.Router();
+const { register, login, getMe } = require('../controllers/authController');
+const { protect } = require('../middleware/auth');
 
-// @route   POST api/auth/register
-// @desc    Register a new user (placeholder)
-// @access  Public
-router.post('/register', (req, res) => {
-  res.json({ message: 'User registration route' });
-});
-
-// @route   POST api/auth/login
-// @desc    Login a user and get token (placeholder)
-// @access  Public
-router.post('/login', (req, res) => {
-  res.json({ message: 'User login route' });
-});
+// Routes
+router.post('/register', register);
+router.post('/login', login);
+router.get('/me', protect, getMe);
 
 module.exports = router;

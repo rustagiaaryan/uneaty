@@ -1,11 +1,27 @@
 const express = require('express');
 const router = express.Router();
+const {
+  getOrders,
+  getOrder,
+  createOrder,
+  updateOrderStatus,
+  cancelOrder
+} = require('../controllers/orderController');
 
-// @route   GET api/orders
-// @desc    Get all orders (placeholder)
-// @access  Private
-router.get('/', (req, res) => {
-  res.json({ message: 'Get all orders route' });
-});
+const { protect, authorize } = require('../middleware/auth');
+
+// Protect all routes
+router.use(protect);
+
+// Routes
+router.route('/')
+  .get(getOrders)
+  .post(authorize('customer'), createOrder);
+
+router.route('/:id')
+  .get(getOrder);
+
+router.put('/:id/status', authorize('deliverer', 'admin'), updateOrderStatus);
+router.put('/:id/cancel', cancelOrder);
 
 module.exports = router;

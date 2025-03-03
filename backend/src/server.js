@@ -2,57 +2,51 @@ const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const helmet = require('helmet');
+const mongoose = require('mongoose');
 const morgan = require('morgan');
-const connectDB = require('./config/db');
-const logger = require('./config/logger');
-const path = require('path');
 
 // Load environment variables
 dotenv.config();
 
-// Connect to database
-connectDB();
-
 // Initialize Express app
 const app = express();
 
-// Body parser middleware
+// Middleware
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-
-// Security middleware
 app.use(helmet());
-
-// CORS middleware
 app.use(cors());
+app.use(morgan('dev'));
 
-// Request logging middleware
-app.use(morgan('combined'));
+// Connect to MongoDB
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log('MongoDB Connected');
+  } catch (error) {
+    console.error(`Error connecting to MongoDB: ${error.message}`);
+    process.exit(1);
+  }
+};
+
+connectDB();
 
 // Define routes
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'UP', message: 'Server is healthy' });
 });
 
-// Basic routes - will expand with actual route files later
-app.use('/api/users', require('./routes/users'));
+// Mount routers
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/delivery-services', require('./routes/deliveryServices'));
 app.use('/api/orders', require('./routes/orders'));
-
-// Serve static assets in production
-if (process.env.NODE_ENV === 'production') {
-  // Set static folder
-  app.use(express.static('public'));
-
-  app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, 'public', 'index.html'));
-  });
-}
+app.use('/api/users', require('./routes/users'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  logger.error(`${err.message} - ${req.originalUrl} - ${req.method}`);
+  console.error(err.stack);
   
   res.status(err.statusCode || 500).json({
     success: false,
@@ -62,15 +56,6 @@ app.use((err, req, res, next) => {
 
 // Start the server
 const PORT = process.env.PORT || 4000;
-const server = app.listen(PORT, () => {
-  logger.info(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
-
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err) => {
-  logger.error(`Unhandled Rejection: ${err.message}`);
-  // Close server & exit process
-  server.close(() => process.exit(1));
-});
-
-module.exports = server; // Export for testing
