@@ -4,3 +4,4 @@ metadata:
   name: uneaty
   labels:
     name: uneaty
+    environment: ${environment}

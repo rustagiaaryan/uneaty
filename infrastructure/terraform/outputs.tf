@@ -22,3 +22,13 @@ output "vpc_id" {
   description = "VPC ID used by EKS cluster"
   value       = module.vpc.vpc_id
 }
+
+output "elasticache_endpoint" {
+  description = "ElastiCache Redis endpoint"
+  value       = aws_elasticache_cluster.uneaty.cache_nodes.0.address
+}
+
+output "frontend_bucket_name" {
+  description = "S3 bucket name for frontend assets"
+  value       = aws_s3_bucket.frontend_assets.bucket
+}

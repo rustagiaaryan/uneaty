@@ -73,3 +73,113 @@ module "eks" {
     Project     = "UnEaty"
   }
 }
+
+# RDS Database for MongoDB
+resource "aws_db_subnet_group" "uneaty" {
+  name       = "uneaty-db-subnet-group"
+  subnet_ids = module.vpc.private_subnets
+
+  tags = {
+    Name = "UnEaty DB subnet group"
+  }
+}
+
+resource "aws_security_group" "db_sg" {
+  name        = "uneaty-db-sg"
+  description = "Allow MongoDB traffic"
+  vpc_id      = module.vpc.vpc_id
+
+  ingress {
+    from_port   = 27017
+    to_port     = 27017
+    protocol    = "tcp"
+    cidr_blocks = [module.vpc.vpc_cidr_block]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "UnEaty DB Security Group"
+  }
+}
+
+# ElastiCache for Redis (session cache)
+resource "aws_elasticache_subnet_group" "uneaty" {
+  name       = "uneaty-cache-subnet-group"
+  subnet_ids = module.vpc.private_subnets
+}
+
+resource "aws_security_group" "cache_sg" {
+  name        = "uneaty-cache-sg"
+  description = "Allow Redis traffic"
+  vpc_id      = module.vpc.vpc_id
+
+  ingress {
+    from_port   = 6379
+    to_port     = 6379
+    protocol    = "tcp"
+    cidr_blocks = [module.vpc.vpc_cidr_block]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "UnEaty Cache Security Group"
+  }
+}
+
+resource "aws_elasticache_cluster" "uneaty" {
+  cluster_id           = "uneaty-cache"
+  engine               = "redis"
+  node_type            = "cache.t3.micro"
+  num_cache_nodes      = 1
+  parameter_group_name = "default.redis6.x"
+  subnet_group_name    = aws_elasticache_subnet_group.uneaty.name
+  security_group_ids   = [aws_security_group.cache_sg.id]
+  port                 = 6379
+}
+
+# S3 bucket for static assets
+resource "aws_s3_bucket" "frontend_assets" {
+  bucket = "${var.project_name}-frontend-assets"
+
+  tags = {
+    Name        = "${var.project_name} Frontend Assets"
+    Environment = var.environment
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "frontend_assets" {
+  bucket = aws_s3_bucket.frontend_assets.id
+
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
+  restrict_public_buckets = false
+}
+
+resource "aws_s3_bucket_policy" "allow_access_from_cloudfront" {
+  bucket = aws_s3_bucket.frontend_assets.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "PublicReadGetObject"
+        Effect    = "Allow"
+        Principal = "*"
+        Action    = "s3:GetObject"
+        Resource  = "${aws_s3_bucket.frontend_assets.arn}/*"
+      }
+    ]
+  })
+}
