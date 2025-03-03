@@ -5,51 +5,60 @@ const DeliveryService = require('../models/DeliveryService');
 // @route   POST /api/orders
 // @access  Private/Customer
 exports.createOrder = async (req, res, next) => {
-  try {
-    req.body.customer = req.user.id;
-
-    // Check if delivery service exists and is available
-    const deliveryService = await DeliveryService.findById(req.body.deliveryService);
-
-    if (!deliveryService) {
-      return res.status(404).json({
+    try {
+      console.log('Creating order with data:', req.body);
+      
+      req.body.customer = req.user.id;
+  
+      // Check if delivery service exists and is available
+      const deliveryService = await DeliveryService.findById(req.body.deliveryService);
+  
+      if (!deliveryService) {
+        return res.status(404).json({
+          success: false,
+          error: 'Delivery service not found'
+        });
+      }
+  
+      if (!deliveryService.isAvailable) {
+        return res.status(400).json({
+          success: false,
+          error: 'Delivery service is not available'
+        });
+      }
+  
+      // Set deliverer from the delivery service
+      req.body.deliverer = deliveryService.deliverer;
+      
+      // Set delivery fee from the delivery service
+      req.body.deliveryFee = deliveryService.deliveryFee;
+      
+      // Calculate total amount
+      const itemsTotal = req.body.items.reduce(
+        (sum, item) => sum + (item.price * item.quantity), 
+        0
+      );
+      req.body.totalAmount = itemsTotal + req.body.deliveryFee;
+  
+      // Create order
+      const order = await Order.create(req.body);
+  
+      // Update delivery service current orders
+      deliveryService.currentOrders += 1;
+      await deliveryService.save();
+  
+      res.status(201).json({
+        success: true,
+        data: order
+      });
+    } catch (error) {
+      console.error('Order creation error:', error);
+      res.status(400).json({
         success: false,
-        error: 'Delivery service not found'
+        error: error.message
       });
     }
-
-    if (!deliveryService.isAvailable) {
-      return res.status(400).json({
-        success: false,
-        error: 'Delivery service is not available'
-      });
-    }
-
-    // Set deliverer from the delivery service
-    req.body.deliverer = deliveryService.deliverer;
-    
-    // Set delivery fee from the delivery service
-    req.body.deliveryFee = deliveryService.deliveryFee;
-
-    // Create order
-    const order = await Order.create(req.body);
-
-    // Update delivery service current orders
-    deliveryService.currentOrders += 1;
-    await deliveryService.save();
-
-    res.status(201).json({
-      success: true,
-      data: order
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(400).json({
-      success: false,
-      error: error.message
-    });
-  }
-};
+  };
 
 // @desc    Get all orders
 // @route   GET /api/orders

@@ -14,8 +14,6 @@ import './App.css';
 
 // Add Bootstrap CSS
 import 'bootstrap/dist/css/bootstrap.min.css';
-// Add Bootstrap JS
-import 'bootstrap/dist/js/bootstrap.bundle.min';
 
 const App = () => {
   return (
