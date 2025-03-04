@@ -7,41 +7,44 @@ const DeliveryService = require('../models/DeliveryService');
 exports.createOrder = async (req, res, next) => {
     try {
       console.log('Creating order with data:', req.body);
+      console.log('Authenticated user:', req.user ? req.user.id : 'No user found');
       
+      // Set customer ID from authenticated user
       req.body.customer = req.user.id;
   
-      // Check if delivery service exists and is available
+      // Check if delivery service exists
       const deliveryService = await DeliveryService.findById(req.body.deliveryService);
   
       if (!deliveryService) {
+        console.log('Delivery service not found:', req.body.deliveryService);
         return res.status(404).json({
           success: false,
           error: 'Delivery service not found'
         });
       }
   
-      if (!deliveryService.isAvailable) {
-        return res.status(400).json({
-          success: false,
-          error: 'Delivery service is not available'
-        });
-      }
-  
+      console.log('Found delivery service:', deliveryService);
+      
       // Set deliverer from the delivery service
       req.body.deliverer = deliveryService.deliverer;
       
-      // Set delivery fee from the delivery service
-      req.body.deliveryFee = deliveryService.deliveryFee;
+      // Make sure we have deliveryFee 
+      if (!req.body.deliveryFee) {
+        req.body.deliveryFee = deliveryService.deliveryFee;
+      }
       
-      // Calculate total amount
+      // Double-check totalAmount calculation
       const itemsTotal = req.body.items.reduce(
         (sum, item) => sum + (item.price * item.quantity), 
         0
       );
-      req.body.totalAmount = itemsTotal + req.body.deliveryFee;
-  
+      req.body.totalAmount = parseFloat((itemsTotal + req.body.deliveryFee).toFixed(2));
+      
+      console.log('Final order data to save:', req.body);
+      
       // Create order
       const order = await Order.create(req.body);
+      console.log('Order created successfully:', order._id);
   
       // Update delivery service current orders
       deliveryService.currentOrders += 1;

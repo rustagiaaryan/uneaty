@@ -146,8 +146,8 @@ const OrderForm = ({ deliveryService, onSuccess, onCancel }) => {
     return (itemsTotal + deliveryService.deliveryFee).toFixed(2);
   };
 
-  // Update the onSubmit function
-  const onSubmit = async (e) => {
+  // In OrderForm.js onSubmit function
+const onSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
@@ -162,7 +162,7 @@ const OrderForm = ({ deliveryService, onSuccess, onCancel }) => {
         (sum, item) => sum + (item.price * item.quantity), 
         0
       );
-      const totalAmount = itemsTotal + deliveryService.deliveryFee;
+      const totalAmount = parseFloat((itemsTotal + deliveryService.deliveryFee).toFixed(2));
   
       // Create order data with totalAmount
       const orderData = {
@@ -186,6 +186,7 @@ const OrderForm = ({ deliveryService, onSuccess, onCancel }) => {
       
       console.log('Sending order data:', orderData);
   
+      // Make sure api.js has the token set in headers
       const response = await api.post('/orders', orderData);
       console.log('Order created successfully:', response.data);
       

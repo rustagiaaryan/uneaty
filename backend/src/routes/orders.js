@@ -1,3 +1,4 @@
+// In backend/src/routes/orders.js
 const express = require('express');
 const router = express.Router();
 const {
@@ -10,7 +11,7 @@ const {
 
 const { protect, authorize } = require('../middleware/auth');
 
-// Protect all routes
+// Protect all routes - ensures req.user is available
 router.use(protect);
 
 // Routes

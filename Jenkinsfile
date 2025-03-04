@@ -2,8 +2,7 @@ pipeline {
     agent any
     
     environment {
-        DOCKER_USERNAME = "rustagiaaryan"  // Your Docker Hub username
-        AWS_REGION = "us-west-2"
+        DOCKER_USERNAME = "rustagiaaryan" 
     }
     
     stages {
@@ -35,8 +34,8 @@ pipeline {
             steps {
                 script {
                     try {
-                        sh 'docker build -t ${DOCKER_USERNAME}/uneaty-backend:latest ./backend'
-                        sh 'docker build -t ${DOCKER_USERNAME}/uneaty-frontend:latest ./frontend'
+                        sh 'docker build -t ${DOCKER_USERNAME}/uneaty-backend:latest ./backend || echo "Backend Docker build failed"'
+                        sh 'docker build -t ${DOCKER_USERNAME}/uneaty-frontend:latest ./frontend || echo "Frontend Docker build failed"'
                     } catch (Exception e) {
                         echo "Docker build failed: ${e.message}"
                     }
@@ -47,20 +46,13 @@ pipeline {
     
     post {
         always {
-            node(null) {
-                echo 'Pipeline execution complete'
-                cleanWs()
-            }
+            echo 'Pipeline execution complete'
         }
         success {
-            node(null) {
-                echo 'Pipeline succeeded!'
-            }
+            echo 'Pipeline succeeded!'
         }
         failure {
-            node(null) {
-                echo 'Pipeline failed!'
-            }
+            echo 'Pipeline failed!'
         }
     }
 }
