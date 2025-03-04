@@ -3,6 +3,8 @@ pipeline {
     
     environment {
         DOCKER_USERNAME = "rustagiaaryan"  // Your Docker Hub username
+        MONGO_URI = "mongodb://localhost:27017/uneaty-test"  // Test MongoDB URI
+        JWT_SECRET = "test-secret-key"     // Test JWT secret
     }
     
     stages {
