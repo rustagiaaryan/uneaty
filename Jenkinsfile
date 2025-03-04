@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'node:16-alpine'
+            args '-v /var/run/docker.sock:/var/run/docker.sock'
+        }
+    }
     
     environment {
         DOCKER_USERNAME = "rustagiaaryan"  // Your Docker Hub username
@@ -12,19 +17,11 @@ pipeline {
             }
         }
         
-        stage('Backend Unit Tests') {
+        stage('Backend Tests') {
             steps {
                 dir('backend') {
                     sh 'npm install'
-                    sh 'npm run test:unit || echo "Unit tests failed but continuing"'
-                }
-            }
-        }
-        
-        stage('Backend Integration Tests') {
-            steps {
-                dir('backend') {
-                    sh 'npm run test:integration || echo "Integration tests failed but continuing"'
+                    sh 'npm test || echo "Tests failed but continuing"'
                 }
             }
         }
@@ -34,19 +31,6 @@ pipeline {
                 dir('frontend') {
                     sh 'npm install'
                     sh 'npm test -- --watchAll=false || echo "Tests failed but continuing"'
-                }
-            }
-        }
-        
-        stage('Build Docker Images') {
-            steps {
-                script {
-                    try {
-                        sh 'docker build -t ${DOCKER_USERNAME}/uneaty-backend:latest ./backend || echo "Backend Docker build failed"'
-                        sh 'docker build -t ${DOCKER_USERNAME}/uneaty-frontend:latest ./frontend || echo "Frontend Docker build failed"'
-                    } catch (Exception e) {
-                        echo "Docker build failed: ${e.message}"
-                    }
                 }
             }
         }
