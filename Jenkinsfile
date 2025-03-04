@@ -2,7 +2,7 @@ pipeline {
     agent any
     
     environment {
-        DOCKER_USERNAME = "rustagiaaryan" 
+        DOCKER_USERNAME = "rustagiaaryan"  // Your Docker Hub username
     }
     
     stages {
@@ -12,19 +12,27 @@ pipeline {
             }
         }
         
-        stage('Build and Test Backend') {
+        stage('Backend Unit Tests') {
             steps {
                 dir('backend') {
-                    sh 'npm install || echo "npm install failed but continuing"'
-                    sh 'npm test || echo "Tests failed but continuing"'
+                    sh 'npm install'
+                    sh 'npm run test:unit || echo "Unit tests failed but continuing"'
                 }
             }
         }
         
-        stage('Build and Test Frontend') {
+        stage('Backend Integration Tests') {
+            steps {
+                dir('backend') {
+                    sh 'npm run test:integration || echo "Integration tests failed but continuing"'
+                }
+            }
+        }
+        
+        stage('Frontend Tests') {
             steps {
                 dir('frontend') {
-                    sh 'npm install || echo "npm install failed but continuing"'
+                    sh 'npm install'
                     sh 'npm test -- --watchAll=false || echo "Tests failed but continuing"'
                 }
             }
