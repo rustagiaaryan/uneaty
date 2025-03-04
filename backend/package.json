@@ -4,11 +4,12 @@
   "description": "Backend for UnEaty food delivery app",
   "main": "src/server.js",
   "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
     "test": "jest --forceExit --detectOpenHandles",
     "test:unit": "jest tests/unit --forceExit",
     "test:integration": "jest tests/integration --forceExit",
-    "dev": "nodemon src/server.js",
-    "start": "node src/server.js"
+    "lint": "eslint ."
 },
   "keywords": [
     "food",
